@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Gastos da Obra</title>
+
+  <style>
+  :root {
+  --primary: #2563eb;
+  --accent: #d97706;
+  --danger: #dc2626;
+  --bg: #f0f2f5;
+  --card: #ffffff;
+  --text: #1f2937;
+  --light-text: #6b7280;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  padding: 16px;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+header {
+  background: linear-gradient(135deg, #1e40af, var(--primary));
+  color: white;
+  text-align: center;
+  padding: 20px 16px;
+}
+
+h1 { font-size: 1.65rem; font-weight: 700; }
+
+.add-section {
+  padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  background: var(--card);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.btn-novo, .btn-download {
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.btn-novo {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 3px 12px rgba(37,99,235,0.25);
+}
+
+.btn-novo:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(37,99,235,0.35); }
+
+.btn-download {
+  background: #10b981;
+  color: white;
+}
+
+.btn-download:hover { background: #059669; transform: translateY(-1px); }
+
+/* Resumo - cada info em linha separada, valores menores */
+.resumo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  padding: 20px;
+}
+
+.card-resumo {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 18px 16px;
+  text-align: center;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-resumo .icon { font-size: 1.8rem; }
+.card-resumo .label { font-size: 0.95rem; color: var(--light-text); font-weight: 500; }
+.card-resumo .valor { 
+  font-size: 1.35rem;          /* valores menores */
+  font-weight: 700; 
+  color: var(--primary);
+}
+.saldo-negativo .valor { color: var(--danger); }
+
+/* Tabela desktop - valores menores */
+.table-container { padding: 0 20px 28px; }
+
+table { width: 100%; border-collapse: collapse; background: var(--card); }
+th { 
+  background: #f8fafc; 
+  padding: 14px 10px; 
+  font-size: 0.9rem; 
+  font-weight: 600; 
+  color: #4b5563; 
+  border-bottom: 2px solid #e5e7eb; 
+}
+td { 
+  padding: 14px 10px; 
+  border-bottom: 1px solid #f1f5f9; 
+  text-align: center; 
+  font-size: 0.95rem;
+}
+td strong, td .valor { 
+  font-size: 1.05rem;          /* valores monetários menores na tabela */
+  font-weight: 600;
+}
+tr:hover td { background: #f8fafc; }
+
+/* Cards mobile - cada informação em linha separada */
+@media (max-width: 768px) {
+  .table-container table, thead, tbody, tr, th { display: none; }
+
+  .expense-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .expense-card .header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: var(--light-text);
+  }
+
+  .expense-card .categoria {
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .expense-card .descricao {
+    font-size: 1.05rem;
+    font-weight: 500;
+  }
+
+  .expense-card .valores {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.95rem;
+  }
+
+  .expense-card .valores div {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .expense-card .valores strong {
+    font-size: 1.1rem;           /* valores menores nos cards */
+    color: var(--primary);
+  }
+}
+
+/* Modal mantido menor */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+.modal-content {
+  background: white;
+  width: 100%;
+  max-width: 460px;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: 16px;
+  padding: 18px 16px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+}
+
+.close-modal {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #9ca3af;
+}
+
+.modal-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin: 18px 0 20px;
+}
+
+label { font-size: 0.9rem; font-weight: 600; color: var(--light-text); margin-bottom: 4px; }
+input, select {
+  padding: 11px 13px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 0.98rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.modal-actions button { padding: 11px 20px; font-size: 0.98rem; border-radius: 10px; min-width: 90px; }
+
+.modal.keyboard-open .modal-content {
+  max-height: 50vh;
+  margin-top: 5vh;
+}
+
+@media (max-width: 768px) {
+  .modal-content { padding: 16px 14px; }
+}
+
+/* Modal menor e otimizado */ .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 2000; align-items: center; justify-content: center; padding: 10px; }
+
+.modal-content { background: white; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; border-radius: 16px; padding: 20px 18px; box-shadow: 0 15px 40px rgba(0,0,0,0.25); }
+
+.close-modal { position: absolute; top: 12px; right: 16px; font-size: 2rem; cursor: pointer; color: #9ca3af; }
+
+.modal-form { display: grid; grid-template-columns: 1fr; gap: 14px; margin: 20px 0 24px; }
+
+label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--light-text); font-size: 0.95rem; } input, select { width: 100%; padding: 12px 14px; border: 1.5px solid #d1d5db; border-radius: 10px; font-size: 1rem; }
+
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+.modal-actions button {
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 10px;
+      min-width: 100px;
+    }
+
+    .modal.keyboard-open .modal-content {
+      max-height: 52vh;
+      margin-top: 5vh;
+    }
+
+    @media (max-width: 768px) {
+      .modal-content { padding: 18px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Controle de Gastos da Obra</h1>
+  </header>
+
+  <div class="add-section">
+    <button class="btn-novo" onclick="abrirModal('novo')">+ Novo Gasto</button>
+    <button class="btn-download" onclick="baixarCSV()">
+      📥 Baixar CSV
+    </button>
+  </div>
+
+  <div class="resumo" id="resumo"></div>
+  <div class="table-container" id="table-container"></div>
+</div>
+
+<!-- Modal (mantido igual) -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="fecharModal()">×</span>
+    <h2 id="modal-title" style="text-align:center; margin-bottom:18px;">Novo Gasto</h2>
+    
+    <div class="modal-form">
+      <div><label for="modal-data">Data</label><input type="date" id="modal-data"></div>
+      <div><label for="modal-categoria">Categoria</label>
+        <select id="modal-categoria">
+          <option>Cimento</option><option>Areia</option><option>Brita</option>
+          <option>Tijolo/Bloco</option><option>Ferro</option><option>Madeira</option>
+          <option>Telhado</option><option>Elétrica</option><option>Hidráulica</option>
+          <option>Ferramentas</option><option>Mão de obra</option>
+          <option>Transporte</option><option>Outros</option>
+        </select>
+      </div>
+      <div><label for="modal-descricao">Descrição</label><input type="text" id="modal-descricao" placeholder="Ex: Compra de 50 sacos de cimento"></div>
+      <div><label for="modal-valorTotal">Valor Total (R$)</label><input type="number" step="0.01" id="modal-valorTotal"></div>
+      <div><label for="modal-valorPago">Valor Pago (R$)</label><input type="number" step="0.01" id="modal-valorPago"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-excluir" id="btn-excluir-modal" onclick="excluirDoModal()">Excluir</button>
+      <button style="background:var(--primary); color:white;" onclick="salvarDoModal()">Salvar</button>
+      <button onclick="fecharModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let gastos = JSON.parse(localStorage.getItem("gastos")) || [];
+let editIndex = -1;
+let initialHeight = window.innerHeight;
+
+function formatarMoeda(v) {
+  return Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2});
+}
+
+function formatarData(d) {
+  if (!d) return '';
+  const [a,m,dia] = d.split('-');
+  return `${dia}/${m}/${a}`;
+}
+
+function salvarLocal() {
+  localStorage.setItem("gastos", JSON.stringify(gastos));
+}
+
+// ==================== DOWNLOAD CSV ====================
+function baixarCSV() {
+  if (gastos.length === 0) {
+    alert("Não há gastos para exportar.");
+    return;
+  }
+
+  let csvContent = "Data;Categoria;Descrição;Valor Total;Valor Pago\n";
+
+  gastos.forEach(g => {
+    const linha = [
+      formatarData(g.data),
+      `"${g.categoria}"`,
+      `"${g.descricao.replace(/"/g, '""')}"`,   // escape de aspas
+      g.valorTotal.toFixed(2).replace('.', ','),
+      g.valorPago.toFixed(2).replace('.', ',')
+    ].join(';');
+    csvContent += linha + "\n";
+  });
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `gastos_obra_${new Date().toISOString().slice(0,10)}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// Funções do modal e renderizar (mantidas iguais às anteriores)
+function abrirModal(tipo, index = -1) {
+  editIndex = index;
+  const modal = document.getElementById("modal");
+  const titulo = document.getElementById("modal-title");
+  const btnExcluir = document.getElementById("btn-excluir-modal");
+
+  initialHeight = window.innerHeight;
+
+  if (tipo === "editar" && index >= 0) {
+    const g = gastos[index];
+    document.getElementById("modal-data").value = g.data;
+    document.getElementById("modal-categoria").value = g.categoria;
+    document.getElementById("modal-descricao").value = g.descricao;
+    document.getElementById("modal-valorTotal").value = g.valorTotal;
+    document.getElementById("modal-valorPago").value = g.valorPago;
+
+    titulo.textContent = "Editar Gasto";
+    btnExcluir.style.display = "block";
+  } else {
+    limparModal();
+    titulo.textContent = "Novo Gasto";
+    btnExcluir.style.display = "none";
+  }
+
+  modal.style.display = "flex";
+  modal.classList.remove("keyboard-open");
+}
+
+function fecharModal() {
+  document.getElementById("modal").style.display = "none";
+  document.getElementById("modal").classList.remove("keyboard-open");
+  limparModal();
+}
+
+function limparModal() {
+  document.getElementById("modal-data").value = "";
+  document.getElementById("modal-categoria").selectedIndex = 0;
+  document.getElementById("modal-descricao").value = "";
+  document.getElementById("modal-valorTotal").value = "";
+  document.getElementById("modal-valorPago").value = "";
+}
+
+function salvarDoModal() {
+  const data = document.getElementById("modal-data").value;
+  const categoria = document.getElementById("modal-categoria").value;
+  const descricao = document.getElementById("modal-descricao").value.trim();
+  const valorTotal = Number(document.getElementById("modal-valorTotal").value);
+  const valorPago = Number(document.getElementById("modal-valorPago").value);
+
+  if (!data || !descricao || valorTotal <= 0) {
+    alert("Preencha os campos obrigatórios corretamente.");
+    return;
+  }
+  if (valorPago > valorTotal && !confirm("Valor pago maior que o total. Continuar?")) return;
+
+  const gasto = { data, categoria, descricao, valorTotal, valorPago };
+
+  if (editIndex === -1) gastos.push(gasto);
+  else gastos[editIndex] = gasto;
+
+  gastos.sort((a,b) => b.data.localeCompare(a.data));
+  salvarLocal();
+  renderizar();
+  fecharModal();
+}
+
+function excluirDoModal() {
+  if (editIndex < 0 || !confirm("Excluir este gasto permanentemente?")) return;
+  gastos.splice(editIndex, 1);
+  salvarLocal();
+  renderizar();
+  fecharModal();
+}
+
+function renderizar() {
+  let totalObra = 0, totalPago = 0;
+  let tbodyHTML = "";
+  let cardsHTML = "";
+
+  gastos.forEach((g, i) => {
+    totalObra += g.valorTotal || 0;
+    totalPago += g.valorPago || 0;
+
+    tbodyHTML += `
+      <tr>
+        <td>${formatarData(g.data)}</td>
+        <td>${g.categoria}</td>
+        <td>${g.descricao}</td>
+        <td>R$ ${formatarMoeda(g.valorTotal)}</td>
+        <td>R$ ${formatarMoeda(g.valorPago)}</td>
+        <td class="acoes"><button class="btn-editar" onclick="abrirModal('editar', ${i})">✏️ Editar</button></td>
+      </tr>`;
+
+    cardsHTML += `
+      <div class="expense-card">
+        <div class="header"><span>${formatarData(g.data)}</span><span class="categoria">${g.categoria}</span></div>
+        <div class="descricao">${g.descricao}</div>
+        <div class="valores">
+          <div>Total: <strong>R$ ${formatarMoeda(g.valorTotal)}</strong></div>
+          <div>Pago: <strong>R$ ${formatarMoeda(g.valorPago)}</strong></div>
+        </div>
+        <button class="btn-editar" style="width:100%;" onclick="abrirModal('editar', ${i})">✏️ Editar</button>
+      </div>`;
+  });
+
+  const saldo = totalObra - totalPago;
+
+  document.getElementById("resumo").innerHTML = `
+    <div class="card-resumo"><span class="icon">📊</span><span class="label">Total da Obra</span><span class="valor">R$ ${formatarMoeda(totalObra)}</span></div>
+    <div class="card-resumo"><span class="icon">💵</span><span class="label">Total Pago</span><span class="valor">R$ ${formatarMoeda(totalPago)}</span></div>
+    <div class="card-resumo ${saldo < 0 ? 'saldo-negativo' : ''}"><span class="icon">📉</span><span class="label">Saldo a Pagar</span><span class="valor">R$ ${formatarMoeda(saldo)}</span></div>
+  `;
+
+  const container = document.getElementById("table-container");
+  container.innerHTML = `
+    <table id="tabela"><thead><tr><th>Data</th><th>Categoria</th><th>Descrição</th><th>Total</th><th>Pago</th><th>Ações</th></tr></thead><tbody>${tbodyHTML}</tbody></table>
+    <div id="cards-mobile" style="display:none;">${cardsHTML}</div>
+  `;
+
+  if (window.innerWidth <= 768) {
+    document.getElementById("cards-mobile").style.display = "block";
+    document.getElementById("tabela").style.display = "none";
+  } else {
+    document.getElementById("tabela").querySelector("tbody").innerHTML = tbodyHTML;
+  }
+}
+
+// Detecção de teclado
+window.addEventListener('resize', () => {
+  const modal = document.getElementById("modal");
+  const currentHeight = window.innerHeight;
+
+  if (modal.style.display === "flex") {
+    if (currentHeight < initialHeight * 0.78) {
+      modal.classList.add("keyboard-open");
+    } else {
+      modal.classList.remove("keyboard-open");
+    }
+  }
+  if (currentHeight > initialHeight * 0.9) initialHeight = currentHeight;
+});
+
+document.getElementById("modal").addEventListener("click", e => {
+  if (e.target.id === "modal") fecharModal();
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") fecharModal();
+});
+
+renderizar();
+</script>
+</body>
+</html>
