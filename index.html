@@ -11,10 +11,6 @@
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
     
-    :root {
-        --tw-color-primary: #2563eb;
-    }
-    
     body {
         font-family: 'Inter', system-ui, sans-serif;
     }
@@ -36,7 +32,6 @@
         box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
     }
     
-    /* Formatação de inputs com foco moderno */
     input:focus, select:focus {
         outline: none;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
@@ -61,11 +56,20 @@
             </div>
         </div>
         
-        <div class="hidden md:flex items-center gap-x-2 text-sm text-slate-500">
-            <div class="flex items-center gap-x-1.5 bg-white px-4 py-2 rounded-3xl shadow-sm border border-slate-200">
+        <div class="flex items-center gap-x-4">
+            <!-- Status -->
+            <div class="hidden md:flex items-center gap-x-1.5 bg-white px-4 py-2 rounded-3xl shadow-sm border border-slate-200">
                 <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
                 Em andamento
             </div>
+
+            <!-- BOTÃO DE DOWNLOAD – agora bem mais visível e fácil de identificar -->
+            <button onclick="exportarCSV()" 
+                    class="flex items-center gap-x-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold rounded-3xl text-base shadow-md hover:shadow-lg transition-all">
+                📥 
+                <span class="hidden sm:inline">Baixar CSV</span>
+                <span class="sm:hidden">CSV</span>
+            </button>
         </div>
     </div>
 
@@ -162,22 +166,25 @@
             <!-- LISTA DE GASTOS -->
             <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
                 
-                <!-- Título da lista -->
-                <div class="px-6 py-4 border-b flex items-center justify-between bg-slate-50">
+                <!-- Toolbar limpa e moderna -->
+                <div class="px-6 py-5 border-b flex items-center justify-between bg-slate-50">
                     <h3 class="font-semibold text-slate-700">Gastos registrados</h3>
                     
-                    <div class="flex items-center gap-x-2 text-xs">
-                        <input id="busca" type="text" placeholder="Buscar descrição..." 
-                               onkeyup="if(event.key==='Enter') filtrarLista()"
-                               class="w-56 px-4 py-2 bg-white border border-slate-200 rounded-3xl text-sm focus:outline-none focus:border-blue-300">
-                        <button onclick="filtrarLista()" 
-                                class="px-5 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-3xl text-slate-600 text-sm font-medium transition-colors">
-                            🔎
-                        </button>
+                    <div class="flex items-center gap-x-3">
+                        <!-- Busca -->
+                        <div class="flex items-center gap-x-2">
+                            <input id="busca" type="text" placeholder="Buscar descrição..." 
+                                   onkeyup="if(event.key==='Enter') filtrarLista()"
+                                   class="w-56 px-4 py-2 bg-white border border-slate-200 rounded-3xl text-sm focus:outline-none focus:border-blue-300">
+                            <button onclick="filtrarLista()" 
+                                    class="px-5 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-3xl text-slate-600 text-sm font-medium transition-colors">
+                                🔎
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Lista em CARDS (melhor UX mobile + desktop) -->
+                <!-- Lista em CARDS -->
                 <div id="listaCards" class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Populando via JavaScript -->
                 </div>
@@ -241,7 +248,6 @@
         localStorage.setItem("gastos", JSON.stringify(gastos))
     }
 
-    // Formatar moeda brasileira
     function formatarMoeda(valor) {
         return valor.toLocaleString('pt-BR', {
             style: 'currency',
@@ -249,7 +255,6 @@
         })
     }
 
-    // Formatar data para dd/mm/yyyy
     function formatarData(dataStr) {
         if (!dataStr) return '—'
         const [ano, mes, dia] = dataStr.split('-')
@@ -261,16 +266,14 @@
         const icon = document.getElementById('toast-icon')
         const text = document.getElementById('toast-text')
         
-        icon.innerHTML = tipo === 'success' 
-            ? '✅' 
-            : tipo === 'delete' ? '🗑️' : '⚠️'
+        icon.innerHTML = tipo === 'success' ? '✅' 
+                        : tipo === 'delete' ? '🗑️' 
+                        : tipo === 'error' ? '⚠️' : '📤'
         
         text.textContent = mensagem
         toast.classList.remove('hidden')
         
-        setTimeout(() => {
-            toast.classList.add('hidden')
-        }, 2800)
+        setTimeout(() => toast.classList.add('hidden'), 2800)
     }
 
     function salvarGasto() {
@@ -287,7 +290,7 @@
         const gasto = { data, categoria, descricao, valorTotal }
 
         if (editIndex === -1) {
-            gastos.unshift(gasto) // novo no topo
+            gastos.unshift(gasto)
             mostrarToast("Gasto adicionado com sucesso!")
         } else {
             gastos[editIndex] = gasto
@@ -304,7 +307,6 @@
 
     function editar(i) {
         const g = gastos[i]
-        
         document.getElementById("data").value = g.data
         document.getElementById("categoria").value = g.categoria
         document.getElementById("descricao").value = g.descricao
@@ -314,7 +316,6 @@
         document.getElementById("edit-badge").classList.remove("hidden")
         document.getElementById("btn-text").textContent = "Atualizar gasto"
         
-        // Scroll suave até o formulário no mobile
         document.querySelector('.md\\:col-span-5').scrollIntoView({ behavior: "smooth" })
     }
 
@@ -336,6 +337,36 @@
 
     function limparFormulario() {
         document.getElementById("formGasto").reset()
+    }
+
+    function exportarCSV() {
+        if (gastos.length === 0) {
+            mostrarToast("Não há gastos para exportar", "error")
+            return
+        }
+
+        const headers = ["Data", "Categoria", "Descrição", "Valor Total (R$)"]
+        const csvRows = [headers]
+
+        gastos.forEach(g => {
+            const dataFormatada = formatarData(g.data)
+            const valorFormatado = g.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            const descricaoSegura = g.descricao.replace(/"/g, '""')
+            
+            csvRows.push([dataFormatada, g.categoria, `"${descricaoSegura}"`, valorFormatado])
+        })
+
+        const csvContent = csvRows.map(row => row.join(';')).join('\n')
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+        const link = document.createElement('a')
+        link.setAttribute('href', URL.createObjectURL(blob))
+        link.setAttribute('download', `gastos_obra_${new Date().toISOString().slice(0,10).replace(/-/g, '')}.csv`)
+        link.style.visibility = 'hidden'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        
+        mostrarToast("Arquivo CSV baixado com sucesso! 📤")
     }
 
     function renderizar() {
@@ -362,10 +393,8 @@
 
         empty.classList.add("hidden")
 
-        gastosFiltrados.forEach((g, idx) => {
-            // idx real no array original
+        gastosFiltrados.forEach((g) => {
             const indiceReal = gastos.indexOf(g)
-            
             totalObra += g.valorTotal
 
             const cardHTML = `
@@ -407,11 +436,9 @@
         renderizar()
     }
 
-    // Inicialização
     window.onload = function() {
         renderizar()
         
-        // Tecla Esc para cancelar edição
         document.addEventListener('keydown', function(e) {
             if (e.key === "Escape" && editIndex !== -1) {
                 cancelarEdicao()
