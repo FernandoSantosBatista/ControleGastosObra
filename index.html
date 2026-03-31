@@ -7,331 +7,418 @@
 
 <title>Controle de Gastos da Obra</title>
 
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
-
-body{
-font-family:Arial, sans-serif;
-background:#f4f4f4;
-margin:0;
-padding:15px;
-}
-
-h1{
-text-align:center;
-}
-
-.container{
-max-width:1000px;
-margin:auto;
-background:white;
-padding:20px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
-}
-
-.form{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-gap:10px;
-margin-bottom:20px;
-}
-
-input,select{
-padding:10px;
-border-radius:6px;
-border:1px solid #ccc;
-font-size:14px;
-width:100%;
-}
-
-button{
-padding:8px 14px;
-border:none;
-border-radius:6px;
-font-size:14px;
-cursor:pointer;
-font-weight:500;
-transition:0.2s;
-background:#2563eb;
-color:white;
-}
-
-button:hover{
-background:#1d4ed8;
-}
-
-.btn-editar{
-background:#f59e0b;
-color:white;
-}
-
-.btn-editar:hover{
-background:#d97706;
-}
-
-.btn-excluir{
-background:#ef4444;
-color:white;
-}
-
-.btn-excluir:hover{
-background:#dc2626;
-}
-
-.resumo{
-background:#f8f8f8;
-padding:15px;
-border-radius:8px;
-margin-bottom:15px;
-}
-
-.table-container{
-overflow-x:auto;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-min-width:600px;
-}
-
-th,td{
-padding:10px;
-border:1px solid #ddd;
-text-align:center;
-}
-
-th{
-background:#f1f1f1;
-}
-
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    
+    :root {
+        --tw-color-primary: #2563eb;
+    }
+    
+    body {
+        font-family: 'Inter', system-ui, sans-serif;
+    }
+    
+    .toast {
+        animation: toastIn 0.3s ease forwards;
+    }
+    
+    @keyframes toastIn {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .card-hover {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    }
+    
+    /* Formatação de inputs com foco moderno */
+    input:focus, select:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
 </style>
 
 </head>
 
-<body>
+<body class="bg-slate-50 min-h-screen">
 
-<div class="container">
+<div class="max-w-5xl mx-auto px-4 py-6 md:py-10">
 
-<h1>Controle de Gastos da Obra</h1>
+    <!-- HEADER -->
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-x-3">
+            <div class="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl shadow-inner">
+                🏗️
+            </div>
+            <div>
+                <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Controle de Gastos</h1>
+                <p class="text-slate-500 text-sm -mt-1">da Obra</p>
+            </div>
+        </div>
+        
+        <div class="hidden md:flex items-center gap-x-2 text-sm text-slate-500">
+            <div class="flex items-center gap-x-1.5 bg-white px-4 py-2 rounded-3xl shadow-sm border border-slate-200">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                Em andamento
+            </div>
+        </div>
+    </div>
 
-<h3>Adicionar / Editar gasto</h3>
+    <div class="grid md:grid-cols-12 gap-6">
 
-<div class="form">
+        <!-- FORMULÁRIO -->
+        <div class="md:col-span-5 lg:col-span-4">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 sticky top-6">
+                <h2 class="text-xl font-semibold text-slate-900 mb-5 flex items-center gap-x-2">
+                    <span>Adicionar / Editar gasto</span>
+                    <span id="edit-badge" onclick="cancelarEdicao()" 
+                          class="hidden text-xs font-medium bg-amber-100 text-amber-700 px-3 py-1 rounded-2xl cursor-pointer hover:bg-amber-200 transition-colors">
+                        ✏️ Editando
+                    </span>
+                </h2>
 
-<input type="date" id="data">
+                <form id="formGasto" onsubmit="event.preventDefault(); salvarGasto()" class="space-y-5">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Data</label>
+                        <input type="date" id="data" 
+                               class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-300 text-slate-900">
+                    </div>
 
-<select id="categoria">
-<option>Cimento</option>
-<option>Areia</option>
-<option>Brita</option>
-<option>Tijolo/Bloco</option>
-<option>Ferro</option>
-<option>Madeira</option>
-<option>Telhado</option>
-<option>Elétrica</option>
-<option>Hidráulica</option>
-<option>Ferramentas</option>
-<option>Mão de obra</option>
-<option>Transporte</option>
-<option>Outros</option>
-</select>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Categoria</label>
+                        <select id="categoria" 
+                                class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-300 text-slate-900">
+                            <option value="Cimento">Cimento</option>
+                            <option value="Areia">Areia</option>
+                            <option value="Brita">Brita</option>
+                            <option value="Tijolo/Bloco">Tijolo/Bloco</option>
+                            <option value="Ferro">Ferro</option>
+                            <option value="Madeira">Madeira</option>
+                            <option value="Telhado">Telhado</option>
+                            <option value="Elétrica">Elétrica</option>
+                            <option value="Hidráulica">Hidráulica</option>
+                            <option value="Ferramentas">Ferramentas</option>
+                            <option value="Mão de obra">Mão de obra</option>
+                            <option value="Transporte">Transporte</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
 
-<input type="text" id="descricao" placeholder="Descrição">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Descrição</label>
+                        <input type="text" id="descricao" placeholder="Ex: 50 sacos de cimento" 
+                               class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-300 text-slate-900">
+                    </div>
 
-<input type="number" id="valorTotal" placeholder="Valor total">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Valor total (R$)</label>
+                        <input type="number" id="valorTotal" step="0.01" placeholder="0,00" 
+                               class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-300 text-slate-900 text-right font-medium">
+                    </div>
 
-<input type="number" id="valorPago" placeholder="Valor pago">
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" onclick="cancelarEdicao()"
+                                class="flex-1 py-4 text-slate-700 font-medium bg-white border border-slate-200 rounded-3xl hover:bg-slate-50 transition-colors text-base">
+                            Cancelar
+                        </button>
+                        <button type="submit"
+                                class="flex-1 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-3xl transition-all text-base shadow-lg shadow-blue-500/30">
+                            <span id="btn-text">Salvar gasto</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-<button onclick="salvarGasto()">Salvar</button>
+        <!-- RESUMO + LISTA -->
+        <div class="md:col-span-7 lg:col-span-8 space-y-6">
 
+            <!-- RESUMO -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-x-3">
+                        <div class="text-emerald-600 text-4xl">💰</div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-500">TOTAL DA OBRA</p>
+                            <p id="totalObra" class="text-4xl font-semibold text-slate-900">R$ 0,00</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-right">
+                        <div class="inline-flex items-center gap-x-2 bg-slate-100 text-slate-700 text-sm px-4 py-2 rounded-3xl">
+                            <span class="font-medium">Itens cadastrados:</span>
+                            <span id="contagem" class="font-semibold text-xl">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LISTA DE GASTOS -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                
+                <!-- Título da lista -->
+                <div class="px-6 py-4 border-b flex items-center justify-between bg-slate-50">
+                    <h3 class="font-semibold text-slate-700">Gastos registrados</h3>
+                    
+                    <div class="flex items-center gap-x-2 text-xs">
+                        <input id="busca" type="text" placeholder="Buscar descrição..." 
+                               onkeyup="if(event.key==='Enter') filtrarLista()"
+                               class="w-56 px-4 py-2 bg-white border border-slate-200 rounded-3xl text-sm focus:outline-none focus:border-blue-300">
+                        <button onclick="filtrarLista()" 
+                                class="px-5 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-3xl text-slate-600 text-sm font-medium transition-colors">
+                            🔎
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista em CARDS (melhor UX mobile + desktop) -->
+                <div id="listaCards" class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Populando via JavaScript -->
+                </div>
+
+                <!-- Empty state -->
+                <div id="emptyState" class="hidden p-12 text-center">
+                    <div class="mx-auto w-16 h-16 bg-slate-100 rounded-3xl flex items-center justify-center text-4xl mb-4">📭</div>
+                    <p class="text-slate-400 font-medium">Nenhum gasto registrado ainda</p>
+                    <p class="text-slate-400 text-sm mt-1">Adicione o primeiro gasto usando o formulário ao lado</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="resumo">
-
-<p>Total da obra: <b>R$ <span id="totalObra">0</span></b></p>
-
-<p>Total pago: <b>R$ <span id="totalPago">0</span></b></p>
-
-<p>Saldo a pagar: <b>R$ <span id="saldo">0</span></b></p>
-
-</div>
-
-<div class="table-container">
-
-<table>
-
-<thead>
-<tr>
-<th>Data</th>
-<th>Categoria</th>
-<th>Descrição</th>
-<th>Total</th>
-<th>Pago</th>
-<th>Ações</th>
-</tr>
-</thead>
-
-<tbody id="lista"></tbody>
-
-</table>
-
-</div>
-
+<!-- TOAST -->
+<div id="toast" onclick="this.classList.add('hidden')" 
+     class="hidden fixed bottom-6 right-6 bg-slate-800 text-white text-sm font-medium px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-x-3 toast">
+    <span id="toast-icon"></span>
+    <span id="toast-text" class="pr-6"></span>
 </div>
 
 <script>
-
-let gastos = JSON.parse(localStorage.getItem("gastos")) || []
-
-let editIndex = -1
-
-function salvarLocal(){
-
-localStorage.setItem("gastos", JSON.stringify(gastos))
-
-}
-
-function salvarGasto(){
-
-let data = document.getElementById("data").value
-let categoria = document.getElementById("categoria").value
-let descricao = document.getElementById("descricao").value
-let valorTotal = Number(document.getElementById("valorTotal").value)
-let valorPago = Number(document.getElementById("valorPago").value)
-
-if(!descricao || !valorTotal){
-alert("Preencha os campos")
-return
-}
-
-let gasto = {
-data,
-categoria,
-descricao,
-valorTotal,
-valorPago
-}
-
-if(editIndex === -1){
-
-gastos.push(gasto)
-
-}else{
-
-gastos[editIndex] = gasto
-
-editIndex = -1
-
-}
-
-salvarLocal()
-
-renderizar()
-
-limpar()
-
-}
-
-function editar(i){
-
-let g = gastos[i]
-
-document.getElementById("data").value = g.data
-document.getElementById("categoria").value = g.categoria
-document.getElementById("descricao").value = g.descricao
-document.getElementById("valorTotal").value = g.valorTotal
-document.getElementById("valorPago").value = g.valorPago
-
-editIndex = i
-
-window.scrollTo({
-top:0,
-behavior:"smooth"
-})
-
-}
-
-function excluir(i){
-
-if(confirm("Excluir este gasto?")){
-
-gastos.splice(i,1)
-
-salvarLocal()
-
-renderizar()
-
-}
-
-}
-
-function limpar(){
-
-document.getElementById("descricao").value=""
-document.getElementById("valorTotal").value=""
-document.getElementById("valorPago").value=""
-
-}
-
-function renderizar(){
-
-let lista = document.getElementById("lista")
-
-lista.innerHTML=""
-
-let totalObra = 0
-
-let totalPago = 0
-
-gastos.forEach((g,i)=>{
-
-totalObra += g.valorTotal
-
-totalPago += g.valorPago
-
-lista.innerHTML += `
-
-<tr>
-
-<td>${g.data}</td>
-
-<td>${g.categoria}</td>
-
-<td>${g.descricao}</td>
-
-<td>R$ ${g.valorTotal}</td>
-
-<td>R$ ${g.valorPago}</td>
-
-<td>
-
-<button class="btn-editar" onclick="editar(${i})">✏️ Editar</button>
-
-<button class="btn-excluir" onclick="excluir(${i})">🗑 Excluir</button>
-
-</td>
-
-</tr>
-
-`
-
-})
-
-let saldo = totalObra - totalPago
-
-document.getElementById("totalObra").innerText = totalObra
-
-document.getElementById("totalPago").innerText = totalPago
-
-document.getElementById("saldo").innerText = saldo
-
-}
-
-renderizar()
-
+    // Configuração Tailwind
+    function initTailwind() {
+        return {
+            config(userConfig = {}) {
+                return {
+                    content: [],
+                    theme: {
+                        extend: {}
+                    }
+                }
+            },
+            theme(userConfig = {}) {
+                return {
+                    ...this.defaultTheme(),
+                    ...userConfig,
+                }
+            },
+            defaultTheme() {
+                return {
+                    extend: {
+                        colors: {
+                            primary: '#2563eb'
+                        }
+                    }
+                }
+            }
+        }
+    }
+    document.documentElement.setAttribute('data-tailwind-config', JSON.stringify(initTailwind().config()))
+
+    // Variáveis globais
+    let gastos = JSON.parse(localStorage.getItem("gastos")) || []
+    let editIndex = -1
+    let filtroAtual = ''
+
+    function salvarLocal() {
+        localStorage.setItem("gastos", JSON.stringify(gastos))
+    }
+
+    // Formatar moeda brasileira
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        })
+    }
+
+    // Formatar data para dd/mm/yyyy
+    function formatarData(dataStr) {
+        if (!dataStr) return '—'
+        const [ano, mes, dia] = dataStr.split('-')
+        return `${dia}/${mes}/${ano}`
+    }
+
+    function mostrarToast(mensagem, tipo = 'success') {
+        const toast = document.getElementById('toast')
+        const icon = document.getElementById('toast-icon')
+        const text = document.getElementById('toast-text')
+        
+        icon.innerHTML = tipo === 'success' 
+            ? '✅' 
+            : tipo === 'delete' ? '🗑️' : '⚠️'
+        
+        text.textContent = mensagem
+        toast.classList.remove('hidden')
+        
+        setTimeout(() => {
+            toast.classList.add('hidden')
+        }, 2800)
+    }
+
+    function salvarGasto() {
+        const data = document.getElementById("data").value
+        const categoria = document.getElementById("categoria").value
+        const descricao = document.getElementById("descricao").value.trim()
+        const valorTotal = parseFloat(document.getElementById("valorTotal").value)
+
+        if (!descricao || isNaN(valorTotal) || valorTotal <= 0) {
+            mostrarToast("Preencha todos os campos corretamente", "error")
+            return
+        }
+
+        const gasto = { data, categoria, descricao, valorTotal }
+
+        if (editIndex === -1) {
+            gastos.unshift(gasto) // novo no topo
+            mostrarToast("Gasto adicionado com sucesso!")
+        } else {
+            gastos[editIndex] = gasto
+            editIndex = -1
+            document.getElementById("edit-badge").classList.add("hidden")
+            document.getElementById("btn-text").textContent = "Salvar gasto"
+            mostrarToast("Gasto atualizado com sucesso!")
+        }
+
+        salvarLocal()
+        renderizar()
+        limparFormulario()
+    }
+
+    function editar(i) {
+        const g = gastos[i]
+        
+        document.getElementById("data").value = g.data
+        document.getElementById("categoria").value = g.categoria
+        document.getElementById("descricao").value = g.descricao
+        document.getElementById("valorTotal").value = g.valorTotal
+        
+        editIndex = i
+        document.getElementById("edit-badge").classList.remove("hidden")
+        document.getElementById("btn-text").textContent = "Atualizar gasto"
+        
+        // Scroll suave até o formulário no mobile
+        document.querySelector('.md\\:col-span-5').scrollIntoView({ behavior: "smooth" })
+    }
+
+    function cancelarEdicao() {
+        editIndex = -1
+        document.getElementById("edit-badge").classList.add("hidden")
+        document.getElementById("btn-text").textContent = "Salvar gasto"
+        limparFormulario()
+    }
+
+    function excluir(i) {
+        if (confirm("Tem certeza que deseja excluir este gasto?")) {
+            gastos.splice(i, 1)
+            salvarLocal()
+            renderizar()
+            mostrarToast("Gasto excluído", "delete")
+        }
+    }
+
+    function limparFormulario() {
+        document.getElementById("formGasto").reset()
+    }
+
+    function renderizar() {
+        const container = document.getElementById("listaCards")
+        const empty = document.getElementById("emptyState")
+        const totalEl = document.getElementById("totalObra")
+        const contagemEl = document.getElementById("contagem")
+
+        container.innerHTML = ""
+
+        let totalObra = 0
+        const gastosFiltrados = gastos.filter(g => 
+            !filtroAtual || 
+            g.descricao.toLowerCase().includes(filtroAtual.toLowerCase()) ||
+            g.categoria.toLowerCase().includes(filtroAtual.toLowerCase())
+        )
+
+        if (gastosFiltrados.length === 0) {
+            empty.classList.remove("hidden")
+            totalEl.textContent = formatarMoeda(0)
+            contagemEl.textContent = 0
+            return
+        }
+
+        empty.classList.add("hidden")
+
+        gastosFiltrados.forEach((g, idx) => {
+            // idx real no array original
+            const indiceReal = gastos.indexOf(g)
+            
+            totalObra += g.valorTotal
+
+            const cardHTML = `
+            <div class="card-hover bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <span class="inline-block px-3 py-1 text-xs font-medium rounded-3xl bg-blue-100 text-blue-700">${g.categoria}</span>
+                    </div>
+                    <span class="text-sm text-slate-400 font-medium">${formatarData(g.data)}</span>
+                </div>
+                
+                <p class="text-slate-900 font-medium leading-tight mb-4 line-clamp-2">${g.descricao}</p>
+                
+                <div class="flex items-baseline justify-between">
+                    <div class="text-3xl font-semibold text-slate-900">${formatarMoeda(g.valorTotal)}</div>
+                    
+                    <div class="flex gap-2">
+                        <button onclick="editar(${indiceReal})" 
+                                class="flex items-center justify-center w-9 h-9 bg-amber-100 hover:bg-amber-200 text-amber-600 rounded-2xl text-xl transition-colors">
+                            ✏️
+                        </button>
+                        <button onclick="excluir(${indiceReal})" 
+                                class="flex items-center justify-center w-9 h-9 bg-red-100 hover:bg-red-200 text-red-600 rounded-2xl text-xl transition-colors">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            </div>`
+
+            container.innerHTML += cardHTML
+        })
+
+        totalEl.textContent = formatarMoeda(totalObra)
+        contagemEl.textContent = gastosFiltrados.length
+    }
+
+    function filtrarLista() {
+        filtroAtual = document.getElementById("busca").value
+        renderizar()
+    }
+
+    // Inicialização
+    window.onload = function() {
+        renderizar()
+        
+        // Tecla Esc para cancelar edição
+        document.addEventListener('keydown', function(e) {
+            if (e.key === "Escape" && editIndex !== -1) {
+                cancelarEdicao()
+            }
+        })
+    }
 </script>
 
 </body>
-
 </html>
