@@ -1,301 +1,337 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gastos da Obra</title>
 
-  <style>
-    :root {
-      --primary: #2563eb;
-      --primary-hover: #1e40af;
-      --danger: #ef4444;
-      --success: #10b981;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --text-light: #64748b;
-      --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05);
-    }
-    /* TODO o CSS está exatamente igual ao original que você enviou */
-    *, *::before, *::after { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 24px 20px; min-height: 100vh; }
-    header { text-align: center; margin-bottom: 32px; }
-    h1 { font-size: clamp(1.8rem, 5vw, 2.75rem); font-weight: 700; color: var(--primary); margin: 0; letter-spacing: -0.02em; }
-    .add-section { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
-    .btn-novo, .btn-download { padding: 14px 28px; border-radius: 12px; font-size: 1.05rem; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--shadow); display: flex; align-items: center; gap: 8px; border: none; }
-    .btn-novo { background: var(--primary); color: white; }
-    .btn-novo:hover { background: var(--primary-hover); transform: translateY(-3px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
-    .btn-download { background: white; color: var(--text); border: 2px solid var(--border); }
-    .btn-download:hover { background: #f1f5f9; border-color: #cbd5e1; transform: translateY(-2px); }
-    .resumo { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 40px; }
-    .card-resumo { background: var(--card-bg); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 20px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .card-resumo:hover { transform: translateY(-6px); }
-    .card-resumo .icon { font-size: 3rem; width: 68px; height: 68px; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 9999px; flex-shrink: 0; }
-    .card-resumo .label { font-size: 0.95rem; font-weight: 600; color: var(--text-light); margin-bottom: 4px; }
-    .card-resumo .valor { font-size: 1.85rem; font-weight: 700; letter-spacing: -0.02em; }
-    .card-resumo:nth-child(1) .valor { color: #2563eb; }
-    .card-resumo:nth-child(2) .valor { color: var(--success); }
-    .card-resumo:nth-child(3) .valor { color: #f59e0b; }
-    .card-resumo.saldo-negativo .valor { color: var(--danger); }
-    .table-container { background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
-    table { width: 100%; border-collapse: collapse; }
-    thead { background: #f8fafc; }
-    th { padding: 18px 20px; text-align: left; font-weight: 600; color: var(--text-light); font-size: 0.95rem; border-bottom: 2px solid var(--border); }
-    th:nth-child(4), th:nth-child(5) { text-align: right; }
-    th:nth-child(6) { text-align: center; }
-    td { padding: 18px 20px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-    td:nth-child(4), td:nth-child(5) { text-align: right; font-weight: 600; }
-    tr:hover td { background: #f8fafc; }
-    .acoes { text-align: center; }
-    .btn-editar { background: transparent; border: 2px solid var(--primary); color: var(--primary); padding: 9px 18px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
-    .btn-editar:hover { background: var(--primary); color: white; }
-    #cards-mobile { display: flex; flex-direction: column; gap: 18px; padding: 8px; }
-    .expense-card { background: var(--card-bg); border-radius: 16px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); padding: 22px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .expense-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
-    .expense-card .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-    .expense-card .header span:first-child { font-size: 0.95rem; color: var(--text-light); font-weight: 500; }
-    .expense-card .categoria { background: #dbeafe; color: #1e40af; padding: 5px 14px; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; }
-    .expense-card .descricao { font-size: 1.1rem; line-height: 1.4; margin-bottom: 18px; color: var(--text); }
-    .expense-card .valores { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
-    .expense-card .valores > div { display: flex; justify-content: space-between; font-size: 1.05rem; }
-    .expense-card .valores strong { font-weight: 700; }
-    .expense-card .btn-editar { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; font-size: 1.05rem; }
-    .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); align-items: center; justify-content: center; z-index: 9999; padding: 20px; transition: all 0.3s; }
-    .modal.keyboard-open { align-items: flex-start; padding-top: 8vh; }
-    .modal-content { background: var(--card-bg); border-radius: 20px; width: 100%; max-width: 520px; box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.35); max-height: 92vh; overflow-y: auto; position: relative; }
-    .close-modal { position: absolute; top: 18px; right: 22px; font-size: 2.2rem; color: #94a3b8; cursor: pointer; line-height: 1; transition: color 0.2s; z-index: 10; }
-    .close-modal:hover { color: var(--text); }
-    #modal-title { text-align: center; margin: 24px 0 10px; font-size: 1.5rem; font-weight: 700; color: var(--text); }
-    .modal-form { padding: 0 32px; }
-    .modal-form > div { margin-bottom: 22px; }
-    .modal-form label { display: block; margin-bottom: 7px; font-weight: 600; font-size: 0.95rem; color: var(--text-light); }
-    .modal-form input, .modal-form select { width: 100%; padding: 14px 16px; border: 2px solid var(--border); border-radius: 10px; font-size: 1.05rem; transition: all 0.3s; }
-    .modal-form input:focus, .modal-form select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); outline: none; }
-    .modal-form input[type="number"] { font-variant-numeric: tabular-nums; }
-    #div-parcela label { color: var(--success); }
-    .modal-actions { display: flex; gap: 12px; padding: 24px 32px; border-top: 1px solid var(--border); background: #f8fafc; border-radius: 0 0 20px 20px; margin-top: 10px; }
-    .modal-actions button { flex: 1; padding: 15px; border: none; border-radius: 10px; font-size: 1.05rem; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .modal-actions button:hover { transform: translateY(-2px); }
-    .btn-excluir { background: var(--danger) !important; color: white !important; }
-    .modal-actions button:nth-child(2) { background: var(--primary); color: white; }
-    .modal-actions button:last-child { background: #e2e8f0; color: var(--text); }
-    @media (max-width: 768px) {
-      .container { padding: 16px 12px; }
-      .add-section { flex-direction: column; align-items: stretch; }
-      .resumo { grid-template-columns: 1fr; }
-    }
-    button:focus, input:focus, select:focus { outline: 3px solid rgba(37, 99, 235, 0.4); outline-offset: 3px; }
-    @media (prefers-color-scheme: dark) {
-      :root { --bg: #0f172a; --card-bg: #1e2937; --border: #334155; --text: #f1f5f9; --text-light: #94a3b8; }
-    }
-  </style>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Controle de Gastos da Obra</title>
+
+<style>
+
+body{
+font-family:Arial, sans-serif;
+background:#f4f4f4;
+margin:0;
+padding:15px;
+}
+
+h1{
+text-align:center;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+.form{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+gap:10px;
+margin-bottom:20px;
+}
+
+input,select{
+padding:10px;
+border-radius:6px;
+border:1px solid #ccc;
+font-size:14px;
+width:100%;
+}
+
+button{
+padding:8px 14px;
+border:none;
+border-radius:6px;
+font-size:14px;
+cursor:pointer;
+font-weight:500;
+transition:0.2s;
+background:#2563eb;
+color:white;
+}
+
+button:hover{
+background:#1d4ed8;
+}
+
+.btn-editar{
+background:#f59e0b;
+color:white;
+}
+
+.btn-editar:hover{
+background:#d97706;
+}
+
+.btn-excluir{
+background:#ef4444;
+color:white;
+}
+
+.btn-excluir:hover{
+background:#dc2626;
+}
+
+.resumo{
+background:#f8f8f8;
+padding:15px;
+border-radius:8px;
+margin-bottom:15px;
+}
+
+.table-container{
+overflow-x:auto;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+min-width:600px;
+}
+
+th,td{
+padding:10px;
+border:1px solid #ddd;
+text-align:center;
+}
+
+th{
+background:#f1f1f1;
+}
+
+</style>
+
 </head>
+
 <body>
 
 <div class="container">
-  <header><h1>Gastos da Obra</h1></header>
-  <div class="add-section">
-    <button class="btn-novo" onclick="abrirModal('novo')">+ Novo Gasto</button>
-    <button class="btn-download" onclick="baixarCSV()">📥 Baixar CSV</button>
-  </div>
-  <div class="resumo" id="resumo"></div>
-  <div class="table-container" id="table-container"></div>
+
+<h1>Controle de Gastos da Obra</h1>
+
+<h3>Adicionar / Editar gasto</h3>
+
+<div class="form">
+
+<input type="date" id="data">
+
+<select id="categoria">
+<option>Cimento</option>
+<option>Areia</option>
+<option>Brita</option>
+<option>Tijolo/Bloco</option>
+<option>Ferro</option>
+<option>Madeira</option>
+<option>Telhado</option>
+<option>Elétrica</option>
+<option>Hidráulica</option>
+<option>Ferramentas</option>
+<option>Mão de obra</option>
+<option>Transporte</option>
+<option>Outros</option>
+</select>
+
+<input type="text" id="descricao" placeholder="Descrição">
+
+<input type="number" id="valorTotal" placeholder="Valor total">
+
+<input type="number" id="valorPago" placeholder="Valor pago">
+
+<button onclick="salvarGasto()">Salvar</button>
+
 </div>
 
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <span class="close-modal" onclick="fecharModal()">×</span>
-    <h2 id="modal-title">Novo Gasto</h2>
-    
-    <div class="modal-form">
-      <div><label for="modal-data">Data (da compra)</label><input type="date" id="modal-data"></div>
-      <div><label for="modal-categoria">Categoria</label>
-        <select id="modal-categoria">
-          <option>Cimento</option><option>Areia</option><option>Brita</option>
-          <option>Tijolo/Bloco</option><option>Ferro</option><option>Madeira</option>
-          <option>Telhado</option><option>Elétrica</option><option>Hidráulica</option>
-          <option>Ferramentas</option><option>Mão de obra</option>
-          <option>Transporte</option><option>Outros</option>
-        </select>
-      </div>
-      <div><label for="modal-descricao">Descrição</label><input type="text" id="modal-descricao" placeholder="Ex: Cimento - 5x de R$5.000"></div>
-      <div><label for="modal-valorTotal">Valor Total da Compra (R$)</label><input type="number" step="0.01" id="modal-valorTotal"></div>
-      <div><label for="modal-valorPago">Valor Pago Acumulado (R$)</label><input type="number" step="0.01" id="modal-valorPago" readonly></div>
-      
-      <div id="div-parcela">
-        <label for="modal-parcelaAtual">Adicionar Pagamento Agora (parcela) — opcional</label>
-        <input type="number" step="0.01" id="modal-parcelaAtual" placeholder="Ex: 5000">
-      </div>
-    </div>
+<div class="resumo">
 
-    <div class="modal-actions">
-      <button class="btn-excluir" id="btn-excluir-modal" onclick="excluirDoModal()">Excluir</button>
-      <button style="background:var(--primary); color:white;" onclick="salvarDoModal()">Salvar</button>
-      <button onclick="fecharModal()">Cancelar</button>
-    </div>
-  </div>
+<p>Total da obra: <b>R$ <span id="totalObra">0</span></b></p>
+
+<p>Total pago: <b>R$ <span id="totalPago">0</span></b></p>
+
+<p>Saldo a pagar: <b>R$ <span id="saldo">0</span></b></p>
+
+</div>
+
+<div class="table-container">
+
+<table>
+
+<thead>
+<tr>
+<th>Data</th>
+<th>Categoria</th>
+<th>Descrição</th>
+<th>Total</th>
+<th>Pago</th>
+<th>Ações</th>
+</tr>
+</thead>
+
+<tbody id="lista"></tbody>
+
+</table>
+
+</div>
+
 </div>
 
 <script>
-let gastos = JSON.parse(localStorage.getItem("gastos")) || [];
-let editIndex = -1;
-let initialHeight = window.innerHeight;
 
-function formatarMoeda(v) { return Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2}); }
-function formatarData(d) { if (!d) return ''; const [a,m,dia] = d.split('-'); return `${dia}/${m}/${a}`; }
+let gastos = JSON.parse(localStorage.getItem("gastos")) || []
 
-function salvarLocal() { localStorage.setItem("gastos", JSON.stringify(gastos)); }
+let editIndex = -1
 
-function baixarCSV() {
-  if (gastos.length === 0) { alert("Não há gastos."); return; }
-  let csv = "Data;Categoria;Descrição;Valor Total;Valor Pago\n";
-  gastos.forEach(g => {
-    csv += `${formatarData(g.data)};"${g.categoria}";"${g.descricao.replace(/"/g,'""')}";${g.valorTotal.toFixed(2).replace('.',',')};${g.valorPago.toFixed(2).replace('.',',')}\n`;
-  });
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `gastos_obra_${new Date().toISOString().slice(0,10)}.csv`;
-  link.click();
+function salvarLocal(){
+
+localStorage.setItem("gastos", JSON.stringify(gastos))
+
 }
 
-function abrirModal(tipo, index = -1) {
-  editIndex = index;
-  const modal = document.getElementById("modal");
-  const titulo = document.getElementById("modal-title");
-  const btnExcluir = document.getElementById("btn-excluir-modal");
-  const divParcela = document.getElementById("div-parcela");
+function salvarGasto(){
 
-  initialHeight = window.innerHeight;
+let data = document.getElementById("data").value
+let categoria = document.getElementById("categoria").value
+let descricao = document.getElementById("descricao").value
+let valorTotal = Number(document.getElementById("valorTotal").value)
+let valorPago = Number(document.getElementById("valorPago").value)
 
-  if (tipo === "editar" && index >= 0) {
-    const g = gastos[index];
-    document.getElementById("modal-data").value = g.data;
-    document.getElementById("modal-categoria").value = g.categoria;
-    document.getElementById("modal-descricao").value = g.descricao;
-    document.getElementById("modal-valorTotal").value = g.valorTotal;
-    document.getElementById("modal-valorPago").value = g.valorPago || 0;
-
-    titulo.textContent = "Editar Gasto";
-    btnExcluir.style.display = "block";
-    divParcela.style.display = "block";
-  } else {
-    limparModal();
-    titulo.textContent = "Novo Gasto";
-    btnExcluir.style.display = "none";
-    divParcela.style.display = "none";
-  }
-  modal.style.display = "flex";
-  modal.classList.remove("keyboard-open");
+if(!descricao || !valorTotal){
+alert("Preencha os campos")
+return
 }
 
-function limparModal() {
-  document.getElementById("modal-data").value = "";
-  document.getElementById("modal-categoria").selectedIndex = 0;
-  document.getElementById("modal-descricao").value = "";
-  document.getElementById("modal-valorTotal").value = "";
-  document.getElementById("modal-valorPago").value = "";
-  document.getElementById("modal-parcelaAtual").value = "";
+let gasto = {
+data,
+categoria,
+descricao,
+valorTotal,
+valorPago
 }
 
-function salvarDoModal() {
-  const data = document.getElementById("modal-data").value;   // ← data da compra (nunca muda)
-  const categoria = document.getElementById("modal-categoria").value;
-  let descricao = document.getElementById("modal-descricao").value.trim();
-  const valorTotal = Number(document.getElementById("modal-valorTotal").value);
-  let valorPagoAtual = Number(document.getElementById("modal-valorPago").value) || 0;
-  const parcelaAgora = Number(document.getElementById("modal-parcelaAtual").value) || 0;
+if(editIndex === -1){
 
-  if (!data || !descricao || valorTotal <= 0) {
-    alert("Preencha os campos obrigatórios.");
-    return;
-  }
+gastos.push(gasto)
 
-  if (editIndex !== -1 && parcelaAgora > 0) {
-    // ADICIONA a data do parcelamento na descrição (sem alterar a data original)
-    const dataHoje = new Date().toISOString().slice(0, 10);
-    const dataFormatada = formatarData(dataHoje);
-    
-    valorPagoAtual += parcelaAgora;
-    descricao += ` (parcela R$ ${parcelaAgora} em ${dataFormatada})`;
-  }
+}else{
 
-  const gasto = { data, categoria, descricao, valorTotal, valorPago: valorPagoAtual };
+gastos[editIndex] = gasto
 
-  if (editIndex === -1) gastos.push(gasto);
-  else gastos[editIndex] = gasto;
+editIndex = -1
 
-  gastos.sort((a,b) => b.data.localeCompare(a.data));
-  salvarLocal();
-  renderizar();
-  fecharModal();
 }
 
-function excluirDoModal() {
-  if (editIndex < 0 || !confirm("Excluir permanentemente?")) return;
-  gastos.splice(editIndex, 1);
-  salvarLocal();
-  renderizar();
-  fecharModal();
+salvarLocal()
+
+renderizar()
+
+limpar()
+
 }
 
-function fecharModal() {
-  document.getElementById("modal").style.display = "none";
-  document.getElementById("modal").classList.remove("keyboard-open");
-  limparModal();
+function editar(i){
+
+let g = gastos[i]
+
+document.getElementById("data").value = g.data
+document.getElementById("categoria").value = g.categoria
+document.getElementById("descricao").value = g.descricao
+document.getElementById("valorTotal").value = g.valorTotal
+document.getElementById("valorPago").value = g.valorPago
+
+editIndex = i
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+})
+
 }
 
-function renderizar() {
-  let totalObra = 0, totalPago = 0;
-  let tbodyHTML = "", cardsHTML = "";
+function excluir(i){
 
-  gastos.forEach((g, i) => {
-    totalObra += g.valorTotal || 0;
-    totalPago += g.valorPago || 0;
+if(confirm("Excluir este gasto?")){
 
-    tbodyHTML += `<tr><td>${formatarData(g.data)}</td><td>${g.categoria}</td><td>${g.descricao}</td><td>R$ ${formatarMoeda(g.valorTotal)}</td><td>R$ ${formatarMoeda(g.valorPago)}</td><td class="acoes"><button class="btn-editar" onclick="abrirModal('editar', ${i})">✏️ Editar</button></td></tr>`;
+gastos.splice(i,1)
 
-    cardsHTML += `<div class="expense-card"><div class="header"><span>${formatarData(g.data)}</span><span class="categoria">${g.categoria}</span></div><div class="descricao">${g.descricao}</div><div class="valores"><div>Total: <strong>R$ ${formatarMoeda(g.valorTotal)}</strong></div><div>Pago: <strong>R$ ${formatarMoeda(g.valorPago)}</strong></div></div><button class="btn-editar" style="width:100%;" onclick="abrirModal('editar', ${i})">✏️ Editar</button></div>`;
-  });
+salvarLocal()
 
-  const saldo = totalObra - totalPago;
-  document.getElementById("resumo").innerHTML = `
-    <div class="card-resumo"><span class="icon">📊</span><span class="label">Total da Obra</span><span class="valor">R$ ${formatarMoeda(totalObra)}</span></div>
-    <div class="card-resumo"><span class="icon">💵</span><span class="label">Total Pago</span><span class="valor">R$ ${formatarMoeda(totalPago)}</span></div>
-    <div class="card-resumo ${saldo < 0 ? 'saldo-negativo' : ''}"><span class="icon">📉</span><span class="label">Saldo a Pagar</span><span class="valor">R$ ${formatarMoeda(saldo)}</span></div>
-  `;
+renderizar()
 
-  const container = document.getElementById("table-container");
-  container.innerHTML = `
-    <table id="tabela"><thead><tr><th>Data</th><th>Categoria</th><th>Descrição</th><th>Total</th><th>Pago</th><th>Ações</th></tr></thead><tbody>${tbodyHTML}</tbody></table>
-    <div id="cards-mobile" style="display:none;">${cardsHTML}</div>
-  `;
-
-  if (window.innerWidth <= 768) {
-    document.getElementById("cards-mobile").style.display = "block";
-    document.getElementById("tabela").style.display = "none";
-  } else {
-    document.getElementById("tabela").querySelector("tbody").innerHTML = tbodyHTML;
-  }
 }
 
-window.addEventListener('resize', () => {
-  const modal = document.getElementById("modal");
-  const currentHeight = window.innerHeight;
-  if (modal.style.display === "flex") {
-    if (currentHeight < initialHeight * 0.78) modal.classList.add("keyboard-open");
-    else modal.classList.remove("keyboard-open");
-  }
-  if (currentHeight > initialHeight * 0.9) initialHeight = currentHeight;
-});
+}
 
-document.getElementById("modal").addEventListener("click", e => { if (e.target.id === "modal") fecharModal(); });
-document.addEventListener("keydown", e => { if (e.key === "Escape") fecharModal(); });
+function limpar(){
 
-renderizar();
+document.getElementById("descricao").value=""
+document.getElementById("valorTotal").value=""
+document.getElementById("valorPago").value=""
+
+}
+
+function renderizar(){
+
+let lista = document.getElementById("lista")
+
+lista.innerHTML=""
+
+let totalObra = 0
+
+let totalPago = 0
+
+gastos.forEach((g,i)=>{
+
+totalObra += g.valorTotal
+
+totalPago += g.valorPago
+
+lista.innerHTML += `
+
+<tr>
+
+<td>${g.data}</td>
+
+<td>${g.categoria}</td>
+
+<td>${g.descricao}</td>
+
+<td>R$ ${g.valorTotal}</td>
+
+<td>R$ ${g.valorPago}</td>
+
+<td>
+
+<button class="btn-editar" onclick="editar(${i})">✏️ Editar</button>
+
+<button class="btn-excluir" onclick="excluir(${i})">🗑 Excluir</button>
+
+</td>
+
+</tr>
+
+`
+
+})
+
+let saldo = totalObra - totalPago
+
+document.getElementById("totalObra").innerText = totalObra
+
+document.getElementById("totalPago").innerText = totalPago
+
+document.getElementById("saldo").innerText = saldo
+
+}
+
+renderizar()
+
 </script>
+
 </body>
+
 </html>
