@@ -36,6 +36,14 @@
         outline: none;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
     }
+
+    /* Ajustes minimalistas adicionais */
+    .minimal-number {
+        font-size: 1.75rem;
+        line-height: 1.2;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
 </style>
 
 </head>
@@ -63,7 +71,7 @@
                 Em andamento
             </div>
 
-            <!-- BOTÃO DE DOWNLOAD – agora bem mais visível e fácil de identificar -->
+            <!-- BOTÃO DE DOWNLOAD -->
             <button onclick="exportarCSV()" 
                     class="flex items-center gap-x-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold rounded-3xl text-base shadow-md hover:shadow-lg transition-all">
                 📥 
@@ -148,17 +156,17 @@
             <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-x-3">
-                        <div class="text-emerald-600 text-4xl">💰</div>
+                        <div class="text-emerald-600 text-3xl"></div>
                         <div>
                             <p class="text-sm font-medium text-slate-500">TOTAL DA OBRA</p>
-                            <p id="totalObra" class="text-4xl font-semibold text-slate-900">R$ 0,00</p>
+                            <p id="totalObra" class="minimal-number text-slate-900">R$ 0,00</p>
                         </div>
                     </div>
                     
                     <div class="text-right">
                         <div class="inline-flex items-center gap-x-2 bg-slate-100 text-slate-700 text-sm px-4 py-2 rounded-3xl">
-                            <span class="font-medium">Itens:</span>
-                            <span id="contagem" class="font-semibold text-xl">0</span>
+                           
+                            <span id="contagem" class="font-semibold text-lg">0</span>
                         </div>
                     </div>
                 </div>
@@ -409,7 +417,7 @@
                 <p class="text-slate-900 font-medium leading-tight mb-4 line-clamp-2">${g.descricao}</p>
                 
                 <div class="flex items-baseline justify-between">
-                    <div class="text-3xl font-semibold text-slate-900">${formatarMoeda(g.valorTotal)}</div>
+                    <div class="minimal-number text-slate-900">${formatarMoeda(g.valorTotal)}</div>
                     
                     <div class="flex gap-2">
                         <button onclick="editar(${indiceReal})" 
